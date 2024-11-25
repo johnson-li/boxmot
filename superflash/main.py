@@ -10,6 +10,7 @@ def main():
     video_dir = RESOURCES_PATH / 'shop'
     video_path = video_dir / '2.mp4'
     tracker = Tracker(video_path)
+    tracker.set_process_fps(5)
     tracker.start_tracking()
 
 

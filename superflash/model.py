@@ -12,7 +12,7 @@ def on_predict_start(predictor, persist=False):
     if predictor.trackers:
         return
     tracking_method = 'bytetrack'
-    # tracking_method = 'deepocsort'
+    # tracking_method = 'botsort'
     reid_model = WEIGHTS / 'osnet_x0_25_msmt17.pt'
     tracking_config = TRACKER_CONFIGS / (tracking_method + '.yaml')
     trackers = []
@@ -59,7 +59,8 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
 
 def get_yolo():
-    yolo = YOLO('yolov8n')
+    yolov10_models = ['yolov10n', 'yolov10s', 'yolov10m', 'yolov10b', 'yolov10l', 'yolov10x']
+    yolo = YOLO(yolov10_models[-1])
     # on_predict_start(yolo.predictor, True)
     return yolo
 

@@ -11,12 +11,13 @@ class Illustrator:
 
     def handle_frame_illustration(self, frame, frame_id, tracker: BaseTracker) -> bool:
         img = frame
-        for track in tracker.active_tracks:
-            if track.history_observations:
-                if len(track.history_observations) > 2:
-                    box = track.history_observations[-1]
-                    img = self.plot_box_on_img(img, box, track.conf, track.cls, track.id, 2, .5)
-                    img = self.plot_trackers_trajectories(img, track.history_observations, track.id)
+        img = tracker.plot_results(img, True)
+        # for track in tracker.active_tracks:
+        #     if track.history_observations:
+        #         if len(track.history_observations) > 2:
+        #             box = track.history_observations[-1]
+        #             img = self.plot_box_on_img(img, box, track.conf, track.cls, track.id, 2, .5)
+        #             img = self.plot_trackers_trajectories(img, track.history_observations, track.id)
         cv2.imshow('video', img)
         if cv2.waitKey(1) & 0xff == ord('q'):
             return False

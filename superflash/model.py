@@ -59,8 +59,8 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
 
 def get_yolo():
-    yolov10_models = ['yolov10n', 'yolov10s', 'yolov10m', 'yolov10b', 'yolov10l', 'yolov10x']
-    yolo = YOLO(yolov10_models[-1])
+    yolov10_models = ['yolov10n.pt', 'yolov10s.pt', 'yolov10m.pt', 'yolov10b.pt', 'yolov10l.pt', 'yolov10x.pt']
+    yolo = YOLO(yolov10_models[0])
     # on_predict_start(yolo.predictor, True)
     return yolo
 

@@ -54,7 +54,7 @@ class Tracker:
     @torch.no_grad()
     def handle_frame_tracking(self, frame, frame_id) -> bool:
         logger.debug(f'Start tracking frame {frame_id}')
-        scale = .4
+        scale = 1
         imgsz = [frame.shape[0] * scale, frame.shape[1] * scale]
         imgsz = [int(i // 32 * 32) + (32 if i % 32 != 0 else 0) for i in imgsz]
         results = self.yolo.track(

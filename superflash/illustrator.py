@@ -3,48 +3,58 @@ import hashlib
 import cv2
 import numpy as np
 from boxmot.trackers.basetracker import BaseTracker
+from ultralytics.engine.results import Keypoints
 
 
 class Illustrator:
     def __init__(self) -> None:
         pass
 
-    def handle_frame_illustration(self, frame, frame_id, tracker: BaseTracker) -> bool:
+    def handle_frame_illustration(self, frame, frame_id, tracker: BaseTracker, keypoints_list) -> bool:
         img = frame
-        img = tracker.plot_results(img, True)
-        # for track in tracker.active_tracks:
+        # img = tracker.plot_results(img, True)
+        # for track in tracker.removed_stracks:
+        #     color = [0xff, 0, 0] 
+        #     box = track.xyxy
         #     if track.history_observations:
-        #         if len(track.history_observations) > 2:
-        #             box = track.history_observations[-1]
-        #             img = self.plot_box_on_img(img, box, track.conf, track.cls, track.id, 2, .5)
-        #             img = self.plot_trackers_trajectories(img, track.history_observations, track.id)
+        #         box = track.history_observations[-1]
+        #     img = self.plot_box_on_img(img, box, track.conf, track.cls, track.id, 2, .5, color)
+        # for track in tracker.lost_stracks:
+        #     color = [0, 0xff, 0] if len(track.history_observations) > 2 else [0, 0x7f, 0]
+        #     box = track.xyxy
+        #     if track.history_observations:
+        #         box = track.history_observations[-1]
+        #     img = self.plot_box_on_img(img, box, track.conf, track.cls, track.id, 2, .5, color)
+        #     img = self.plot_trackers_trajectories(img, track.history_observations, track.id, color)
+        for keypoints in keypoints_list:
+            keypoints: Keypoints = keypoints.cpu().numpy()
+            xy = keypoints.xy
+            conf = keypoints.conf
+            for i in range(xy.shape[1]):
+                x, y = xy[0, i]
+                c = conf[0, i]
+                if c > 0:
+                    img = cv2.circle(img, (int(x), int(y)), 2, [0xff, 0, 0], 2)
+        for track in tracker.active_tracks:
+            color = self.id_to_color(track.id)
+            # color = [0, 0, 0xff]
+            box = track.xyxy
+            if track.history_observations:
+                box = track.history_observations[-1]
+            img = self.plot_box_on_img(img, box, track.conf, track.cls, track.id, 2, .5, color)
+            img = self.plot_trackers_trajectories(img, track.history_observations, track.id, color)
         cv2.imshow('video', img)
-        if cv2.waitKey(1) & 0xff == ord('q'):
+        delay = 1
+        if cv2.waitKey(delay) & 0xff == ord('q'):
             return False
         return True
 
-    def plot_box_on_img(self, img: np.ndarray, box: tuple, conf: float, cls: int, id: int, thickness: int = 2, fontscale: float = 0.5) -> np.ndarray:
-        """
-        Draws a bounding box with ID, confidence, and class information on an image.
-
-        Parameters:
-        - img (np.ndarray): The image array to draw on.
-        - box (tuple): The bounding box coordinates as (x1, y1, x2, y2).
-        - conf (float): Confidence score of the detection.
-        - cls (int): Class ID of the detection.
-        - id (int): Unique identifier for the detection.
-        - thickness (int): The thickness of the bounding box.
-        - fontscale (float): The font scale for the text.
-
-        Returns:
-        - np.ndarray: The image array with the bounding box drawn on it.
-        """
-
+    def plot_box_on_img(self, img: np.ndarray, box: tuple, conf: float, cls: int, id: int, thickness: int = 2, fontscale: float = 0.5, color=[0, 0, 0xff]) -> np.ndarray:
         img = cv2.rectangle(
             img,
             (int(box[0]), int(box[1])),
             (int(box[2]), int(box[3])),
-            self.id_to_color(id),
+            color,
             thickness
         )
         img = cv2.putText(
@@ -58,21 +68,7 @@ class Illustrator:
         )
         return img
 
-    def plot_trackers_trajectories(self, img: np.ndarray, observations: list, id: int) -> np.ndarray:
-        """
-        Draws the trajectories of tracked objects based on historical observations. Each point
-        in the trajectory is represented by a circle, with the thickness increasing for more
-        recent observations to visualize the path of movement.
-
-        Parameters:
-        - img (np.ndarray): The image array on which to draw the trajectories.
-        - observations (list): A list of bounding box coordinates representing the historical
-        observations of a tracked object. Each observation is in the format (x1, y1, x2, y2).
-        - id (int): The unique identifier of the tracked object for color consistency in visualization.
-
-        Returns:
-        - np.ndarray: The image array with the trajectories drawn on it.
-        """
+    def plot_trackers_trajectories(self, img: np.ndarray, observations: list, id: int, color=[0, 0, 0xff]) -> np.ndarray:
         for i, box in enumerate(observations):
             trajectory_thickness = int(np.sqrt(float (i + 1)) * 1.2)
             img = cv2.circle(
@@ -80,7 +76,7 @@ class Illustrator:
                 (int((box[0] + box[2]) / 2),
                 int((box[1] + box[3]) / 2)), 
                 2,
-                color=self.id_to_color(int(id)),
+                color=color,
                 thickness=trajectory_thickness
             )
         return img

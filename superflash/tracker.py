@@ -30,12 +30,16 @@ class Tracker:
 
     def start_tracking(self):
         i = 0
-        offset = (3 * 60 + 40) * 15 + 113
+        offset = 0
+        # offset = 30 * 5
+        # offset = (3 * 60 + 40) * 15 + 113
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, offset)
         dropping_rate = self.processing_fps / self.get_video_fps()
         while self.cap.isOpened():
             ret, frame = self.cap.read()
-            if random.random() < dropping_rate:
+            if not ret:
+                break
+            if random.random() > dropping_rate:
                 continue
             if not self.handle_frame(frame, i):
                 break
@@ -43,8 +47,8 @@ class Tracker:
     
     def handle_frame(self, frame, i) -> bool:
         ts = time.time()
-        results = self.handle_frame_tracking(frame, i)
-        res = self.illustrator.handle_frame_illustration(frame, i, self.yolo.predictor.trackers[0])
+        keypoints_list = self.handle_frame_tracking(frame, i)
+        res = self.illustrator.handle_frame_illustration(frame, i, self.yolo.predictor.trackers[0], keypoints_list)
         delay = time.time() - ts
         speed = self.yolo.predictor.results[0].speed
         logger.info(f'It takes {int(delay * 1000)} ms to process frame {i}. Delay: '
@@ -70,6 +74,10 @@ class Tracker:
         )
         if frame_id == 0:
             setup_callbacks(self.yolo)
+        # Must be called after setup_callbacks
+        keypoints_list = []
         for result in results:
             boxes = result.boxes
-        return results
+            keypoints = result.keypoints
+            keypoints_list.append(keypoints)
+        return keypoints_list

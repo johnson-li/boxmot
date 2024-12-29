@@ -6,14 +6,15 @@ from ultralytics import YOLO
 
 from boxmot.tracker_zoo import create_tracker
 from boxmot.utils import TRACKER_CONFIGS, WEIGHTS
+from superflash import RESOURCES_PATH
 
 
 def on_predict_start(predictor, persist=False):
     if predictor.trackers:
         return
-    tracking_method = 'bytetrack'
-    # tracking_method = 'botsort'
-    reid_model = WEIGHTS / 'osnet_x0_25_msmt17.pt'
+    # tracking_method = 'bytetrack'
+    tracking_method = 'botsort'
+    reid_model = RESOURCES_PATH / 'osnet_ain_x1_0_msmt17.pt'
     tracking_config = TRACKER_CONFIGS / (tracking_method + '.yaml')
     trackers = []
     for i in range(predictor.dataset.bs):
@@ -60,7 +61,8 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
 def get_yolo():
     yolov10_models = ['yolov10n.pt', 'yolov10s.pt', 'yolov10m.pt', 'yolov10b.pt', 'yolov10l.pt', 'yolov10x.pt']
-    yolo = YOLO(yolov10_models[0])
+    # yolo = YOLO(RESOURCES_PATH / yolov10_models[0])
+    yolo = YOLO(RESOURCES_PATH / 'yolo11n-pose.pt')
     # on_predict_start(yolo.predictor, True)
     return yolo
 
